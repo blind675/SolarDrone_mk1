@@ -4,6 +4,8 @@ SoftwareSerial mySerial(2, 3); // RX, TX
 
 void setup()
 {
+  pinMode(12, OUTPUT);
+  
   // Open serial communications and wait for port to open:
   Serial.begin(115200);
   while (!Serial) {
@@ -16,6 +18,8 @@ void setup()
   // set the data rate for the SoftwareSerial port
   mySerial.begin(115200);
   mySerial.println("Hello, world?");
+
+  digitalWrite(12, HIGH);
 }
 
 void loop() // run over and over

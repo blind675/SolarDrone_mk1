@@ -3,7 +3,7 @@
  * @flow
  */
 import React, { Component } from 'react';
-import { View, Platform, TextInput, Text, KeyboardAvoidingView, FlatList, Keyboard } from 'react-native';
+import { View, Platform, PermissionsAndroid, TextInput, Text, KeyboardAvoidingView, FlatList, Keyboard } from 'react-native';
 import { BleManager } from 'react-native-ble-plx';
 
 import { Button } from './common/Button';
@@ -12,9 +12,10 @@ class MainScreen extends Component {
     constructor(props) {
         super(props);
         this.manager = new BleManager();
+        this.device = null;
         this.state = {
             messages: [],
-            newCommand: ''
+            newCommand: '',
         };
     }
 
@@ -24,43 +25,74 @@ class MainScreen extends Component {
                 this.printText('BLT: state' + state);
 
                 if (state === 'PoweredOn') {
-                    this.scanAndConnect();
+                    this.scan();
                 }
             });
         } else {
-            this.scanAndConnect();
+            PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION)
+                .then((granted) => {
+
+                    if (granted) {
+                        console.log('You can use the ACCESS_FINE_LOCATION');
+                        this.scan();
+
+                    } else {
+                        console.log('ACCESS_FINE_LOCATION permission denied');
+
+                        PermissionsAndroid.request(
+                            PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+                            {
+                                title: 'Location for BLT',
+                                message:
+                                    'BLT needs location permisions',
+                                buttonNegative: 'Cancel',
+                                buttonPositive: 'OK',
+                            },
+                        ).then(() => {
+                            this.scan();
+                        });
+                    }
+                });
         }
     }
 
-    scanAndConnect() {
+    scan() {
         this.manager.startDeviceScan(null, null, (scan_error, device) => {
-            this.printText('BLT: ' + device);
+            if (device.name) {
+                this.printText('BLT: device.name: ' + device.name);
+                this.printText('BLT: device.manufacturerData: ' + device.manufacturerData);
+                if (device.name === 'Dual-SPP') {
+                    this.device = device;
+                }
+            }
 
             if (scan_error) {
                 this.printText('BLT SCAN ERROR: ' + scan_error);
                 return;
             }
-
-            if (device.name === 'TI BLE Sensor Tag' || device.name === 'SensorTag') {
-                this.printText('BLT: Connecting to TI Sensor');
-                this.manager.stopDeviceScan();
-                device.connect()
-                    .then(connected_device => {
-                        this.printText('BLT: Discovering services and characteristics');
-                        return connected_device.discoverAllServicesAndCharacteristics();
-                    })
-                    .then((discovered_device) => {
-                        this.printText('BLT: Setting notifications');
-                        return this.setupNotifications(discovered_device);
-                    })
-                    .then(() => {
-                        this.printText('BLT: Listening...');
-                    }, (error) => {
-                        this.printText('BLT ERROR: ' + error.message); 
-                        this.error(error.message);
-                    });
-            }
         });
+    }
+
+    connect() {
+        if (this.device) {
+            this.printText('BLT: Connecting to TI Sensor');
+            this.manager.stopDeviceScan();
+            this.device.connect()
+                .then(connected_device => {
+                    this.printText('BLT: Discovering services and characteristics');
+                    return connected_device.discoverAllServicesAndCharacteristics();
+                })
+                .then((discovered_device) => {
+                    this.printText('BLT: Setting notifications');
+                    return this.setupNotifications(discovered_device);
+                })
+                .then(() => {
+                    this.printText('BLT: Listening...');
+                }, (error) => {
+                    this.printText('BLT ERROR: ' + error.message);
+                    this.error(error.message);
+                });
+        }
     }
 
     // TODO: change this to write or read from blt
@@ -79,24 +111,34 @@ class MainScreen extends Component {
                     this.error(error.message);
                     return;
                 }
-                this.updateValue(characteristic.uuid, characteristic.value)
+                this.updateValue(characteristic.uuid, characteristic.value);
             });
         }
     }
 
     newCommandButtonPressed() {
-        Keyboard.dismiss()
+        Keyboard.dismiss();
 
-        if(this.state.newCommand !== '') {
+        if (this.state.newCommand !== '') {
             this.printText('cmd: ' + this.state.newCommand);
+
+            switch (this.state.newCommand) {
+                case 'connect' || 'Connect':
+                    this.connect();
+                    break;
+                default:
+                    break;
+            }
         }
     }
 
-    printText(text){
+    printText(text) {
+        console.log(' - ', text);
+
         const newMessage = {
-            uid: this.state.messages.length + text.replace(/\s/g,''),
-            message: text
-        }
+            uid: this.state.messages.length + text.replace(/\s/g, ''),
+            message: text,
+        };
 
         this.state.messages.push(newMessage);
 
@@ -107,14 +149,12 @@ class MainScreen extends Component {
     }
 
     render() {
-        return (<View style={{
-            flex: 1
-        }}
+        return (<View style={{ flex: 1 }}
         >
             <View style={{
                 height: 60,
                 backgroundColor: 'orange',
-            }}/>
+            }} />
             <FlatList
                 style={{
                     flex: 1,
