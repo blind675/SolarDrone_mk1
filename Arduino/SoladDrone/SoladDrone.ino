@@ -1,10 +1,13 @@
 #include <SoftwareSerial.h>
 
-SoftwareSerial mySerial(2, 3); // RX, TX
+int PWR_PIN = 4;
+SoftwareSerial mySerial(10, 9); // RX, TX
 
 void setup()
 {
-  pinMode(12, OUTPUT);
+  pinMode(PWR_PIN, OUTPUT);
+
+  digitalWrite(12, LOW);
   
   // Open serial communications and wait for port to open:
   Serial.begin(115200);
@@ -12,14 +15,12 @@ void setup()
     ; // wait for serial port to connect. Needed for Native USB only
   }
 
-
   Serial.println("Goodnight moon!");
 
   // set the data rate for the SoftwareSerial port
   mySerial.begin(115200);
-  mySerial.println("Hello, world?");
 
-  digitalWrite(12, HIGH);
+  
 }
 
 void loop() // run over and over

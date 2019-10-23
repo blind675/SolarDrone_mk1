@@ -1,7 +1,10 @@
 BLT Module: 	- BM78SPPS5MC2
 		- https://ro.mouser.com/ProductDetail/Microchip-Technology/BM78SPPS5MC2-0002AA?qs=ZEMkBHnybRHIBp3skSn%2FIw==
+		OR
+		- CC2541
+		- https://www.optimusdigital.ro/ro/wireless-bluetooth/2221-modul-bluetooth-40-cc2541.html?search_query=CC2541&results=5
 
-Arduino: 	- https://www.arduino.cc/en/Reference/CurieBLE
+Arduino: 	- 
 		- https://randomnerdtutorials.com/esp32-bluetooth-low-energy-ble-arduino-ide/
 
 React Native	- https://www.polidea.com/blog/ReactNative_and_Bluetooth_to_An_Other_level/

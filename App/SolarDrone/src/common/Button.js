@@ -7,7 +7,7 @@ const Button = ({ onPress, title, style }) => {
             <Text style={styles.textStyle}> {title} </Text>
         </TouchableOpacity>
     );
-}
+};
 
 const styles = StyleSheet.create({
     buttonBaseStyle: {
@@ -23,7 +23,7 @@ const styles = StyleSheet.create({
         color: '#FFFFFF',
         fontSize: 16,
         fontWeight: '600'
-    }
+    },
 });
 
 export { Button };
