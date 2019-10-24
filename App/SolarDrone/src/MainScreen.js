@@ -61,7 +61,7 @@ class MainScreen extends Component {
                 if (device.name === 'Bob_BLE') {
                     this.device = device;
                     this.setState({
-                        foundBLEInfo: `Found BLE: ${device.manufacturerData}`,
+                        foundBLEInfo: `Found BLE: ${device.name}`,
                     });
                 }
             }
@@ -85,8 +85,8 @@ class MainScreen extends Component {
                 .then(() => {
                     this.setState({
                         connected: true,
+                        foundBLEInfo: 'BLT: Listening...',
                     });
-                    this.printText('BLT: Listening...');
 
                     // "deviceID":"4C:24:98:69:58:09",
                     //      service         - "uuid":"0000ffe0-0000-1000-8000-00805f9b34fb"
@@ -95,10 +95,12 @@ class MainScreen extends Component {
                     this.device.monitorCharacteristicForService('0000ffe0-0000-1000-8000-00805f9b34fb', '0000ffe1-0000-1000-8000-00805f9b34fb', (error, char) => {
                         if (error) {
                             this.printText('BLT Communication: ' + error.message);
+                            this.disconnect();
+
                             return;
                         }
 
-                        this.printText('GOT: ', Base64.atob(char.value));
+                        this.printText('GOT: ' + Base64.atob(char.value));
                     });
                 }, (error) => {
                     this.printText('BLT ERROR: ' + error.message);
@@ -109,11 +111,10 @@ class MainScreen extends Component {
 
     disconnect() {
         if (this.device) {
-            this.device.cancelConnection().then((device) => {
-                this.setState({
-                    connected: false,
-                    foundBLEInfo: '',
-                });
+            this.device.cancelConnection();
+            this.setState({
+                connected: false,
+                foundBLEInfo: '',
             });
         }
     }
@@ -173,7 +174,7 @@ class MainScreen extends Component {
                     height: 64,
                     padding: 12
                 }}>
-                    <Text style={{ flex: 1 }}>{this.foundBLEInfo}</Text>
+                    <Text style={{ flex: 1 }}>{this.state.foundBLEInfo}</Text>
                     {this._renderConnectButton()}
                 </View>
                 <FlatList
@@ -194,7 +195,7 @@ class MainScreen extends Component {
                             marginTop: 3,
                         }}>
                             <Text style={{
-                                fontSize: 10,
+                                fontSize: 12,
                             }}>{item.message}</Text>
                         </View>
                     }
